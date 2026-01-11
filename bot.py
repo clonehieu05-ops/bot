@@ -338,9 +338,13 @@ async def on_member_remove(member):
     if channel:
         await channel.send(f"😢 {member.display_name} đã rời server...")
 
-# ==================== SETUP ====================
+# ==================== SETUP HOOK ====================
+async def bot_setup():
+    await bot.add_cog(MusicCog(bot))
+    await bot.add_cog(GeneralCog(bot))
+    await bot.add_cog(ModCog(bot))
+
+bot.setup_hook = bot_setup  # ← Thêm dòng này
+
 if __name__ == "__main__":
-    bot.add_cog(MusicCog(bot))
-    bot.add_cog(GeneralCog(bot))
-    bot.add_cog(ModCog(bot))
     bot.run(os.getenv("DISCORD_TOKEN"))
