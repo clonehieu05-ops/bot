@@ -5,6 +5,7 @@ import yt_dlp
 import asyncio
 from functools import partial
 import datetime
+import os  # ← Thêm cái này để lấy token từ env
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -150,7 +151,6 @@ class MusicCog(commands.Cog):
         is_url = query.startswith(('http://', 'https://'))
 
         if not is_url:
-            # Search + menu chọn
             search_url = f"ytsearch10:{query}"
             data = await self.extract_info(search_url)
             if not data or 'entries' not in data or not data['entries']:
@@ -172,7 +172,6 @@ class MusicCog(commands.Cog):
             songs = await self.prepare_songs(view.chosen_url, interaction.user)
             await interaction.edit_original_response(content=f"Đã chọn và thêm **{songs[0]['title']}** vào queue!", embed=None, view=None)
         else:
-            # Direct link (video hoặc playlist)
             songs = await self.prepare_songs(query, interaction.user)
             if not songs:
                 await interaction.followup.send("Không thể lấy thông tin từ link!")
@@ -347,4 +346,4 @@ async def setup():
 
 if __name__ == "__main__":
     bot.loop.create_task(setup())
-    bot.run("TOKEN_CUA_BAN_O_DAY")  # Thay bằng token thật, đừng share!
+    bot.run(os.getenv("DISCORD_TOKEN"))  # ← Lấy token từ env, không hardcode!
