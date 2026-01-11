@@ -339,11 +339,8 @@ async def on_member_remove(member):
         await channel.send(f"😢 {member.display_name} đã rời server...")
 
 # ==================== SETUP ====================
-async def setup():
-    await bot.add_cog(MusicCog(bot))
-    await bot.add_cog(GeneralCog(bot))
-    await bot.add_cog(ModCog(bot))
-
 if __name__ == "__main__":
-    bot.loop.create_task(setup())
-    bot.run(os.getenv("DISCORD_TOKEN"))  # ← Lấy token từ env, không hardcode!
+    bot.add_cog(MusicCog(bot))
+    bot.add_cog(GeneralCog(bot))
+    bot.add_cog(ModCog(bot))
+    bot.run(os.getenv("DISCORD_TOKEN"))
