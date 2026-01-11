@@ -5,7 +5,7 @@ import yt_dlp
 import asyncio
 from functools import partial
 import datetime
-import os  # ← Thêm cái này để lấy token từ env
+import os
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -90,9 +90,6 @@ class MusicCog(commands.Cog):
         return songs
 
     async def join_voice(self, interaction):
-        if not interaction.user.voice:
-            await interaction.response.send_message("Bạn phải vào voice channel trước!", ephemeral=True)
-            return None
         channel = interaction.user.voice.channel
         vc = interaction.guild.voice_client
         if vc is None:
@@ -140,10 +137,16 @@ class MusicCog(commands.Cog):
     @app_commands.command(name="play", description="Phát nhạc (tìm kiếm hoặc link YouTube)")
     @app_commands.describe(query="Tên bài hát hoặc link YouTube/playlist")
     async def play(self, interaction: discord.Interaction, query: str):
+        # Kiểm tra voice TRƯỚC defer để tránh lỗi InteractionResponded
+        if not interaction.user.voice:
+            await interaction.response.send_message("Bạn phải vào voice channel trước đã! 🎤", ephemeral=True)
+            return
+
         await interaction.response.defer()
 
         vc = await self.join_voice(interaction)
         if not vc:
+            await interaction.followup.send("Không thể kết nối voice channel!", ephemeral=True)
             return
 
         self.last_channel[interaction.guild.id] = interaction.channel_id
@@ -311,7 +314,7 @@ class ModCog(commands.Cog):
         await member.ban(reason=reason)
         await interaction.response.send_message(f"🔨 Đã ban {member.mention} | Lý do: {reason}")
 
-# ==================== EVENTS ====================
+# ==================== EVENTS & SETUP ====================
 @bot.event
 async def on_ready():
     print(f"Bot đã sẵn sàng: {bot.user}")
@@ -338,13 +341,13 @@ async def on_member_remove(member):
     if channel:
         await channel.send(f"😢 {member.display_name} đã rời server...")
 
-# ==================== SETUP HOOK ====================
-async def bot_setup():
+# Setup hook để add cog async (fix warning discord.py mới)
+async def load_cogs():
     await bot.add_cog(MusicCog(bot))
     await bot.add_cog(GeneralCog(bot))
     await bot.add_cog(ModCog(bot))
 
-bot.setup_hook = bot_setup  # ← Thêm dòng này
+bot.setup_hook = load_cogs
 
 if __name__ == "__main__":
     bot.run(os.getenv("DISCORD_TOKEN"))
